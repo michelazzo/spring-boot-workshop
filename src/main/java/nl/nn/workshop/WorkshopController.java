@@ -1,6 +1,7 @@
 package nl.nn.workshop;
 
 import nl.nn.workshop.model.Course;
+import nl.nn.workshop.model.Enrollment;
 import nl.nn.workshop.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ public class WorkshopController {
 
   @Autowired
   private CourseRepository courseRepository;
+
+  @Autowired
+  private EnrollmentRepository enrollmentRepository;
 
   // STUDENTS
   @PostMapping(value = "/students")
@@ -74,6 +78,35 @@ public class WorkshopController {
   @DeleteMapping(value = "/courses/{id}")
   public ResponseEntity<Void> deleteCourseById(@PathVariable(value = "id") Long id) {
     courseRepository.deleteById(id);
+    return ResponseEntity.ok().build();
+  }
+
+
+  // ENROLLMENTS
+  @PostMapping(value = "/enrollments")
+  public ResponseEntity<Enrollment> createEnrollment(@RequestBody Enrollment enrollment) {
+    return ResponseEntity.ok(enrollmentRepository.save(enrollment));
+  }
+
+  @PutMapping(value = "/enrollments/{id}")
+  public ResponseEntity<Enrollment> updateEnrollment(@PathVariable(value = "id") Long id, @RequestBody Enrollment enrollment) {
+    enrollment.setId(id);
+    return ResponseEntity.ok(enrollmentRepository.save(enrollment));
+  }
+
+  @GetMapping(value = "/enrollments/{id}")
+  public ResponseEntity<Enrollment> getEnrollmentById(@PathVariable(value = "id") Long id) {
+    return ResponseEntity.ok(enrollmentRepository.findById(id).get());
+  }
+
+  @GetMapping(value = "/enrollments")
+  public ResponseEntity<Iterable<Enrollment>> getAllEnrollments() {
+    return ResponseEntity.ok(enrollmentRepository.findAll());
+  }
+
+  @DeleteMapping(value = "/enrollments/{id}")
+  public ResponseEntity<Void> deleteEnrollmentById(@PathVariable(value = "id") Long id) {
+    enrollmentRepository.deleteById(id);
     return ResponseEntity.ok().build();
   }
 
