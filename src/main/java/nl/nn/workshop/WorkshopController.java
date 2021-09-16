@@ -1,5 +1,6 @@
 package nl.nn.workshop;
 
+import nl.nn.workshop.model.Course;
 import nl.nn.workshop.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,21 +18,23 @@ public class WorkshopController {
   @Autowired
   private StudentRepository studentRepository;
 
+  @Autowired
+  private CourseRepository courseRepository;
+
+  // STUDENTS
   @PostMapping(value = "/students")
-  public ResponseEntity<Student> create(@RequestBody Student student) {
+  public ResponseEntity<Student> createStudent(@RequestBody Student student) {
     return ResponseEntity.ok(studentRepository.save(student));
   }
 
   @PutMapping(value = "/students/{id}")
-  public ResponseEntity<Student> update(
-      @PathVariable(value = "id") Long id,
-      @RequestBody Student student) {
+  public ResponseEntity<Student> updateStudent(@PathVariable(value = "id") Long id, @RequestBody Student student) {
     student.setId(id);
     return ResponseEntity.ok(studentRepository.save(student));
   }
 
   @GetMapping(value = "/students/{id}")
-  public ResponseEntity<Student> getById(@PathVariable(value = "id") Long id) {
+  public ResponseEntity<Student> getStudentById(@PathVariable(value = "id") Long id) {
     return ResponseEntity.ok(studentRepository.findById(id).get());
   }
 
@@ -41,8 +44,36 @@ public class WorkshopController {
   }
 
   @DeleteMapping(value = "/students/{id}")
-  public ResponseEntity<Void> deleteById(@PathVariable(value = "id") Long id) {
+  public ResponseEntity<Void> deleteStudentById(@PathVariable(value = "id") Long id) {
     studentRepository.deleteById(id);
+    return ResponseEntity.ok().build();
+  }
+
+  // COURSES
+  @PostMapping(value = "/courses")
+  public ResponseEntity<Course> createCourse(@RequestBody Course course) {
+    return ResponseEntity.ok(courseRepository.save(course));
+  }
+
+  @PutMapping(value = "/courses/{id}")
+  public ResponseEntity<Course> updateCourse(@PathVariable(value = "id") Long id, @RequestBody Course course) {
+    course.setId(id);
+    return ResponseEntity.ok(courseRepository.save(course));
+  }
+
+  @GetMapping(value = "/courses/{id}")
+  public ResponseEntity<Course> getCourseById(@PathVariable(value = "id") Long id) {
+    return ResponseEntity.ok(courseRepository.findById(id).get());
+  }
+
+  @GetMapping(value = "/courses")
+  public ResponseEntity<Iterable<Course>> getAllCourses() {
+    return ResponseEntity.ok(courseRepository.findAll());
+  }
+
+  @DeleteMapping(value = "/courses/{id}")
+  public ResponseEntity<Void> deleteCourseById(@PathVariable(value = "id") Long id) {
+    courseRepository.deleteById(id);
     return ResponseEntity.ok().build();
   }
 
