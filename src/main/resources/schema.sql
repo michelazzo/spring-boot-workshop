@@ -16,11 +16,12 @@ CREATE TABLE course (
 
 DROP TABLE IF EXISTS enrollment;
 CREATE TABLE enrollment (
-    id LONG AUTO_INCREMENT NOT NULL,
+--    id LONG AUTO_INCREMENT NOT NULL,
     student_id LONG NOT NULL,
     course_id LONG NOT NULL,
     enrollment_date TIMESTAMP NOT NULL,
-    active BOOLEAN NOT NULL DEFAULT true,
+--    active BOOLEAN NOT NULL DEFAULT true,
+    PRIMARY KEY (student_id, course_id),
     FOREIGN KEY (student_id) REFERENCES student(id),
     FOREIGN KEY (course_id) REFERENCES course(id)
 );

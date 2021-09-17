@@ -1,18 +1,11 @@
 package nl.nn.workshop.model;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 
-@Entity
-@Table(name = "enrollment")
-@IdClass(EnrollmentPk.class)
-public class Enrollment implements Serializable {
+public class EnrollmentPk implements Serializable {
 
   @Id
   @Column(name = "student_id")
@@ -21,9 +14,6 @@ public class Enrollment implements Serializable {
   @Id
   @Column(name = "course_id")
   private long courseId;
-
-  @Column(name = "enrollment_date")
-  private LocalDateTime enrollmentDate;
 
   public long getStudentId() {
     return studentId;
@@ -41,14 +31,6 @@ public class Enrollment implements Serializable {
     this.courseId = courseId;
   }
 
-  public LocalDateTime getEnrollmentDate() {
-    return enrollmentDate;
-  }
-
-  public void setEnrollmentDate(LocalDateTime enrollmentDate) {
-    this.enrollmentDate = enrollmentDate;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -57,14 +39,13 @@ public class Enrollment implements Serializable {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    Enrollment that = (Enrollment) o;
-    return studentId == that.studentId && courseId == that.courseId && Objects.equals(enrollmentDate,
-        that.enrollmentDate);
+    EnrollmentPk that = (EnrollmentPk) o;
+    return studentId == that.studentId && courseId == that.courseId;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(studentId, courseId, enrollmentDate);
+    return Objects.hash(studentId, courseId);
   }
 
 }

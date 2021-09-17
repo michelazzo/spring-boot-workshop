@@ -88,9 +88,8 @@ public class WorkshopController {
     return ResponseEntity.ok(enrollmentRepository.save(enrollment));
   }
 
-  @PutMapping(value = "/enrollments/{id}")
-  public ResponseEntity<Enrollment> updateEnrollment(@PathVariable(value = "id") Long id, @RequestBody Enrollment enrollment) {
-    enrollment.setId(id);
+  @PutMapping(value = "/enrollments")
+  public ResponseEntity<Enrollment> updateEnrollment(@RequestBody Enrollment enrollment) {
     return ResponseEntity.ok(enrollmentRepository.save(enrollment));
   }
 
