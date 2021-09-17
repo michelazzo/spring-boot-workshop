@@ -1,6 +1,6 @@
 package nl.nn.workshop.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,7 +22,7 @@ public class Student {
   private String name;
 
   @Column(name = "birthday")
-  private Date birthday;
+  private LocalDate birthday;
 
   public long getId() {
     return id;
@@ -40,11 +40,11 @@ public class Student {
     this.name = name;
   }
 
-  public Date getBirthday() {
+  public LocalDate getBirthday() {
     return birthday;
   }
 
-  public void setBirthday(Date birthday) {
+  public void setBirthday(LocalDate birthday) {
     this.birthday = birthday;
   }
 
@@ -57,7 +57,8 @@ public class Student {
       return false;
     }
     Student student = (Student) o;
-    return id == student.id && name.equals(student.name) && birthday.equals(student.birthday);
+    return id == student.id && Objects.equals(name, student.name) && Objects.equals(birthday,
+        student.birthday);
   }
 
   @Override
