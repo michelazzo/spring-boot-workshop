@@ -15,6 +15,14 @@ public class EnrollmentPk implements Serializable {
   @Column(name = "course_id")
   private long courseId;
 
+  public EnrollmentPk(long studentId, long courseId) {
+    this.studentId = studentId;
+    this.courseId = courseId;
+  }
+
+  public EnrollmentPk() {
+  }
+
   public long getStudentId() {
     return studentId;
   }
