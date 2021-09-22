@@ -5,8 +5,6 @@ import nl.nn.workshop.model.Enrollment;
 import nl.nn.workshop.model.EnrollmentPk;
 import nl.nn.workshop.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class WorkshopController {
@@ -37,10 +34,9 @@ public class WorkshopController {
 
   @PutMapping(value = "/students/{id}")
   public ResponseEntity<Student> updateStudent(@PathVariable(value = "id") Long id, @RequestBody Student student) {
-    Student found = getOrThrowNotFound(studentRepository, id);
-    found.setBirthday(student.getBirthday());
-    found.setName(student.getName());
-    return ResponseEntity.ok(studentRepository.save(found));
+    //FIXME throw not found exception when doesn't exist
+    student.setId(id);
+    return ResponseEntity.ok(studentRepository.save(student));
   }
 
   @GetMapping(value = "/students/{id}")
@@ -69,10 +65,9 @@ public class WorkshopController {
 
   @PutMapping(value = "/courses/{id}")
   public ResponseEntity<Course> updateCourse(@PathVariable(value = "id") Long id, @RequestBody Course course) {
-    Course found = getOrThrowNotFound(courseRepository, id);
-    found.setAvailable(course.isAvailable());
-    found.setName(course.getName());
-    return ResponseEntity.ok(courseRepository.save(found));
+    //FIXME throw not found exception when doesn't exist
+    course.setId(id);
+    return ResponseEntity.ok(courseRepository.save(course));
   }
 
   @GetMapping(value = "/courses/{id}")
@@ -103,8 +98,7 @@ public class WorkshopController {
 
   @PutMapping(value = "/enrollments")
   public ResponseEntity<Enrollment> updateEnrollment(@RequestBody Enrollment enrollment) {
-    //FIXME at this stage this method doesn't make sense (nothing to update)
-    getOrThrowNotFound(enrollmentRepository, new EnrollmentPk(enrollment.getStudentId(), enrollment.getCourseId()));
+    //FIXME throw not found exception when doesn't exist
     return ResponseEntity.ok(enrollmentRepository.save(enrollment));
   }
 
@@ -128,20 +122,6 @@ public class WorkshopController {
     //FIXME throw not found exception when doesn't exist
     enrollmentRepository.deleteById(new EnrollmentPk(studentId, courseId));
     return ResponseEntity.ok().build();
-  }
-
-  private ResponseStatusException buildNotFoundException(String entityName, long entityId) {
-    return new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("%s with id %d not found", entityName, entityId));
-  }
-
-  private <T, ID> T getOrThrowNotFound(CrudRepository<T, ID> repository, ID id) {
-    return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-  }
-
-  private <T, ID> void throwNotFoundIfDoesNotExist(CrudRepository<T, ID> repository, ID id) {
-    if (!repository.existsById(id)) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-    }
   }
 
 }
