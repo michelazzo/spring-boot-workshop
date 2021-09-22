@@ -5,6 +5,7 @@ import nl.nn.workshop.model.Enrollment;
 import nl.nn.workshop.model.EnrollmentPk;
 import nl.nn.workshop.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class WorkshopController {
@@ -34,15 +36,17 @@ public class WorkshopController {
 
   @PutMapping(value = "/students/{id}")
   public ResponseEntity<Student> updateStudent(@PathVariable(value = "id") Long id, @RequestBody Student student) {
-    //FIXME throw not found exception when doesn't exist
-    student.setId(id);
-    return ResponseEntity.ok(studentRepository.save(student));
+    Student found = studentRepository
+        .findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    found.setName(student.getName());
+    found.setBirthday(student.getBirthday());
+    return ResponseEntity.ok(studentRepository.save(found));
   }
 
   @GetMapping(value = "/students/{id}")
   public ResponseEntity<Student> getStudentById(@PathVariable(value = "id") Long id) {
-    //FIXME throw not found exception when doesn't exist
-    return ResponseEntity.ok(studentRepository.findById(id).get());
+    return ResponseEntity.of(studentRepository.findById(id));
   }
 
   @GetMapping(value = "/students")
@@ -52,8 +56,9 @@ public class WorkshopController {
 
   @DeleteMapping(value = "/students/{id}")
   public ResponseEntity<Void> deleteStudentById(@PathVariable(value = "id") Long id) {
-    //FIXME throw not found exception when doesn't exist
-    studentRepository.deleteById(id);
+    Student student = studentRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    studentRepository.delete(student);
     return ResponseEntity.ok().build();
   }
 
@@ -65,15 +70,16 @@ public class WorkshopController {
 
   @PutMapping(value = "/courses/{id}")
   public ResponseEntity<Course> updateCourse(@PathVariable(value = "id") Long id, @RequestBody Course course) {
-    //FIXME throw not found exception when doesn't exist
-    course.setId(id);
-    return ResponseEntity.ok(courseRepository.save(course));
+    Course found = courseRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    found.setAvailable(course.isAvailable());
+    found.setName(course.getName());
+    return ResponseEntity.ok(courseRepository.save(found));
   }
 
   @GetMapping(value = "/courses/{id}")
   public ResponseEntity<Course> getCourseById(@PathVariable(value = "id") Long id) {
-    //FIXME throw not found exception when doesn't exist
-    return ResponseEntity.ok(courseRepository.findById(id).get());
+    return ResponseEntity.of(courseRepository.findById(id));
   }
 
   @GetMapping(value = "/courses")
@@ -83,31 +89,46 @@ public class WorkshopController {
 
   @DeleteMapping(value = "/courses/{id}")
   public ResponseEntity<Void> deleteCourseById(@PathVariable(value = "id") Long id) {
-    //FIXME throw not found exception when doesn't exist
-    courseRepository.deleteById(id);
+    Course found = courseRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    courseRepository.delete(found);
     return ResponseEntity.ok().build();
   }
-
 
   // ENROLLMENTS
   @PostMapping(value = "/enrollments")
   public ResponseEntity<Enrollment> createEnrollment(@RequestBody Enrollment enrollment) {
-    //FIXME throw not found exception when student or course doesn't exist
+    if (!studentRepository.existsById(enrollment.getStudentId())) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, String.format("student with id %d not found", enrollment.getStudentId()));
+    }
+    if (!courseRepository.existsById(enrollment.getCourseId())) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, String.format("course with id %d not found", enrollment.getCourseId()));
+    }
     return ResponseEntity.ok(enrollmentRepository.save(enrollment));
   }
 
   @PutMapping(value = "/enrollments")
   public ResponseEntity<Enrollment> updateEnrollment(@RequestBody Enrollment enrollment) {
-    //FIXME throw not found exception when doesn't exist
-    return ResponseEntity.ok(enrollmentRepository.save(enrollment));
+    Enrollment found = enrollmentRepository
+        .findById(new EnrollmentPk(enrollment.getStudentId(), enrollment.getCourseId()))
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+            String.format("enrollment for user with id %d and course with id %d not found",
+            enrollment.getStudentId(),
+            enrollment.getCourseId())));
+    return ResponseEntity.ok(enrollmentRepository.save(found));
   }
 
   @GetMapping(value = "/enrollments/student/{studentId}/course/{courseId}")
   public ResponseEntity<Enrollment> getEnrollmentById(
       @PathVariable(value = "studentId") Long studentId,
       @PathVariable(value = "courseId") Long courseId) {
-    //FIXME throw not found exception when doesn't exist
-    return ResponseEntity.ok(enrollmentRepository.findById(new EnrollmentPk(studentId, courseId)).get());
+    Enrollment found = enrollmentRepository
+        .findById(new EnrollmentPk(studentId, courseId))
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+            String.format("enrollment for user with id %d and course with id %d not found", studentId, courseId)));
+    return ResponseEntity.ok(found);
   }
 
   @GetMapping(value = "/enrollments")
@@ -119,8 +140,11 @@ public class WorkshopController {
   public ResponseEntity<Void> deleteEnrollmentById(
       @PathVariable(value = "studentId") Long studentId,
       @PathVariable(value = "courseId") Long courseId) {
-    //FIXME throw not found exception when doesn't exist
-    enrollmentRepository.deleteById(new EnrollmentPk(studentId, courseId));
+    Enrollment found = enrollmentRepository
+        .findById(new EnrollmentPk(studentId, courseId))
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+            String.format("enrollment for user with id %d and course with id %d not found", studentId, courseId)));
+    enrollmentRepository.delete(found);
     return ResponseEntity.ok().build();
   }
 
