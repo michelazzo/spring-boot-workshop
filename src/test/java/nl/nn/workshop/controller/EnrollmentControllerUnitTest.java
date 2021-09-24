@@ -1,46 +1,22 @@
-package nl.nn.workshop;
+package nl.nn.workshop.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import nl.nn.workshop.model.Course;
+import nl.nn.workshop.AbstractUnitTest;
 import nl.nn.workshop.model.Enrollment;
-import nl.nn.workshop.model.Student;
-import nl.nn.workshop.utils.LocalDateDeserializer;
-import nl.nn.workshop.utils.LocalDateSerializer;
-import nl.nn.workshop.utils.LocalDateTimeDeserializer;
-import nl.nn.workshop.utils.LocalDateTimeSerializer;
+import nl.nn.workshop.repository.CourseRepository;
+import nl.nn.workshop.repository.EnrollmentRepository;
+import nl.nn.workshop.repository.StudentRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("unit-test")
-class WorkshopControllerTest {
-
-  private static final Gson GSON;
-
-  static {
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer());
-    gsonBuilder.registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer());
-    gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateSerializer());
-    gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateDeserializer());
-    GSON = gsonBuilder.setPrettyPrinting().create();
-  }
+public class EnrollmentControllerUnitTest extends AbstractUnitTest {
 
   @MockBean
   private StudentRepository studentRepository;
@@ -50,71 +26,6 @@ class WorkshopControllerTest {
 
   @MockBean
   private EnrollmentRepository enrollmentRepository;
-
-  @Autowired
-  protected MockMvc mvc;
-
-  @Test
-  void testCreateStudent_whenStudentInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
-    LocalDate birthday = LocalDate.of(1643, 1, 4);
-    String studentName = "Isaac Newton";
-
-    Student student = new Student();
-    student.setBirthday(birthday);
-    student.setName(studentName);
-
-    Student saved = new Student();
-    saved.setBirthday(birthday);
-    saved.setName(studentName);
-    saved.setId(1);
-
-    when(studentRepository.save(student)).thenReturn(saved);
-
-    RequestBuilder request =
-        MockMvcRequestBuilders
-            .post("/students")
-            .content(GSON.toJson(student))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON);
-
-    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
-    assertThat(response.getStatus()).isEqualTo(200);
-
-    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
-    assertThat(fromResponse.getBirthday()).isEqualTo(birthday);
-    assertThat(fromResponse.getName()).isEqualTo(studentName);
-  }
-
-  @Test
-  void testCreateCourse_whenCourseInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
-    String courseName = "Physics";
-
-    Course course = new Course();
-    course.setName(courseName);
-    course.setAvailable(true);
-
-    Course saved = new Course();
-    saved.setName(courseName);
-    saved.setAvailable(true);
-    saved.setId(1);
-
-    when(courseRepository.save(course)).thenReturn(saved);
-
-    RequestBuilder request =
-        MockMvcRequestBuilders
-            .post("/courses")
-            .content(GSON.toJson(course))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON);
-
-    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
-    assertThat(response.getStatus()).isEqualTo(200);
-
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
-    assertThat(fromResponse.getName()).isEqualTo(courseName);
-    assertThat(fromResponse.isAvailable()).isEqualTo(true);
-    assertThat(fromResponse.getId()).isEqualTo(1L);
-  }
 
   @Test
   public void testCreateEnrollment_whenStudentAndCourseExist_shouldCreateAndReturnSC200() throws Exception {

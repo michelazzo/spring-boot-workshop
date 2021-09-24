@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="WorkshopApplication - h2" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="MAIN_CLASS_NAME" value="nl.nn.workshop.WorkshopApplication" />
+    <module name="workshop.main" />
+    <option name="VM_PARAMETERS" value="-Dspring.profiles.active=h2" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="nl.nn.workshop.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

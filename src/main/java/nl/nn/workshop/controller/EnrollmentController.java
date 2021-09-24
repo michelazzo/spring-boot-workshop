@@ -1,10 +1,10 @@
-package nl.nn.workshop;
+package nl.nn.workshop.controller;
 
-import nl.nn.workshop.model.Course;
 import nl.nn.workshop.model.Enrollment;
 import nl.nn.workshop.model.EnrollmentPk;
-import nl.nn.workshop.model.Student;
-import org.springframework.beans.factory.annotation.Autowired;
+import nl.nn.workshop.repository.CourseRepository;
+import nl.nn.workshop.repository.EnrollmentRepository;
+import nl.nn.workshop.repository.StudentRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,85 +17,21 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-public class WorkshopController {
+public class EnrollmentController {
 
-  @Autowired
-  private StudentRepository studentRepository;
+  private final StudentRepository studentRepository;
+  private final CourseRepository courseRepository;
+  private final EnrollmentRepository enrollmentRepository;
 
-  @Autowired
-  private CourseRepository courseRepository;
-
-  @Autowired
-  private EnrollmentRepository enrollmentRepository;
-
-  // STUDENTS
-  @PostMapping(value = "/students")
-  public ResponseEntity<Student> createStudent(@RequestBody Student student) {
-    return ResponseEntity.ok(studentRepository.save(student));
+  public EnrollmentController(
+      StudentRepository studentRepository,
+      CourseRepository courseRepository,
+      EnrollmentRepository enrollmentRepository) {
+    this.studentRepository = studentRepository;
+    this.courseRepository = courseRepository;
+    this.enrollmentRepository = enrollmentRepository;
   }
 
-  @PutMapping(value = "/students/{id}")
-  public ResponseEntity<Student> updateStudent(@PathVariable(value = "id") Long id, @RequestBody Student student) {
-    Student found = studentRepository
-        .findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    found.setName(student.getName());
-    found.setBirthday(student.getBirthday());
-    return ResponseEntity.ok(studentRepository.save(found));
-  }
-
-  @GetMapping(value = "/students/{id}")
-  public ResponseEntity<Student> getStudentById(@PathVariable(value = "id") Long id) {
-    return ResponseEntity.of(studentRepository.findById(id));
-  }
-
-  @GetMapping(value = "/students")
-  public ResponseEntity<Iterable<Student>> getAllStudents() {
-    return ResponseEntity.ok(studentRepository.findAll());
-  }
-
-  @DeleteMapping(value = "/students/{id}")
-  public ResponseEntity<Void> deleteStudentById(@PathVariable(value = "id") Long id) {
-    Student student = studentRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    studentRepository.delete(student);
-    return ResponseEntity.ok().build();
-  }
-
-  // COURSES
-  @PostMapping(value = "/courses")
-  public ResponseEntity<Course> createCourse(@RequestBody Course course) {
-    return ResponseEntity.ok(courseRepository.save(course));
-  }
-
-  @PutMapping(value = "/courses/{id}")
-  public ResponseEntity<Course> updateCourse(@PathVariable(value = "id") Long id, @RequestBody Course course) {
-    Course found = courseRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    found.setAvailable(course.isAvailable());
-    found.setName(course.getName());
-    return ResponseEntity.ok(courseRepository.save(found));
-  }
-
-  @GetMapping(value = "/courses/{id}")
-  public ResponseEntity<Course> getCourseById(@PathVariable(value = "id") Long id) {
-    return ResponseEntity.of(courseRepository.findById(id));
-  }
-
-  @GetMapping(value = "/courses")
-  public ResponseEntity<Iterable<Course>> getAllCourses() {
-    return ResponseEntity.ok(courseRepository.findAll());
-  }
-
-  @DeleteMapping(value = "/courses/{id}")
-  public ResponseEntity<Void> deleteCourseById(@PathVariable(value = "id") Long id) {
-    Course found = courseRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    courseRepository.delete(found);
-    return ResponseEntity.ok().build();
-  }
-
-  // ENROLLMENTS
   @PostMapping(value = "/enrollments")
   public ResponseEntity<Enrollment> createEnrollment(@RequestBody Enrollment enrollment) {
     if (!studentRepository.existsById(enrollment.getStudentId())) {
