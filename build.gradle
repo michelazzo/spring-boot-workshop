@@ -20,6 +20,8 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.2.24.jre7'
     implementation 'org.flywaydb:flyway-core:7.15.0'
 
+    implementation 'ma.glasnost.orika:orika-core:1.5.4'
+
     runtimeOnly 'com.h2database:h2'
 
     testImplementation "org.testcontainers:postgresql:1.16.0"
