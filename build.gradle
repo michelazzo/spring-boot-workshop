@@ -19,7 +19,7 @@ dependencies {
     implementation 'ma.glasnost.orika:orika-core:1.5.4'
     implementation 'org.springdoc:springdoc-openapi-ui:1.5.10'
 
-    runtimeOnly 'org.postgresql:postgresql:42.2.24.jre7'
+    runtimeOnly 'org.postgresql:postgresql:42.2.24'
     runtimeOnly 'org.flywaydb:flyway-core:7.15.0'
     runtimeOnly 'com.h2database:h2'
 
