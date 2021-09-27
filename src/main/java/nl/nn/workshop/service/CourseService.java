@@ -50,7 +50,7 @@ public class CourseService {
 
   public List<CourseResource> findAll() {
     return StreamSupport.stream(courseRepository.findAll().spliterator(), false)
-        .map(x -> mapperFacade.map(x, CourseResource.class))
+        .map(course -> mapperFacade.map(course, CourseResource.class))
         .collect(Collectors.toList());
   }
 
