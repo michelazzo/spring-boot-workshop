@@ -2,7 +2,7 @@ package nl.nn.workshop.resource;
 
 import java.time.LocalDate;
 
-public class Student {
+public class StudentResource {
 
   private long id;
   private String name;
