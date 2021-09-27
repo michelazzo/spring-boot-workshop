@@ -51,4 +51,153 @@ public class StudentControllerIntegrationTest extends AbstractIntegrationTest {
     assertThat(fromResponse.getName()).isEqualTo(studentName);
   }
 
+  @Test
+  void testGetStudent_whenStudentExists_shouldGetAndReturnSC200() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .get("/students/{id}", saved.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    assertThat(fromResponse.getName()).isEqualTo(studentName);
+    assertThat(fromResponse.getBirthday()).isEqualTo(birthday);
+    assertThat(fromResponse.getId()).isEqualTo(saved.getId());
+  }
+
+  @Test
+  void testGetStudent_whenStudentDoesNotExist_shouldSendMessageAndReturnSC404() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .get("/students/{id}", saved.getId() + 1)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", saved.getId() + 1));
+  }
+
+  @Test
+  void testPutStudent_whenStudentExists_shouldUpdateAndReturnSC200() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 2, 4);
+    String name = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(name);
+
+    String updatedName = "Sir Isaac Newton";
+    LocalDate updatedBirthday = LocalDate.of(1643, 1, 4);
+
+    Student studentUpdate = new Student();
+    studentUpdate.setName(updatedName);
+    studentUpdate.setBirthday(updatedBirthday);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .put("/students/{id}", saved.getId())
+            .content(GSON.toJson(studentUpdate))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    assertThat(fromResponse.getName()).isEqualTo(updatedName);
+    assertThat(fromResponse.getBirthday()).isEqualTo(updatedBirthday);
+    assertThat(fromResponse.getId()).isEqualTo(saved.getId());
+  }
+
+  @Test
+  void testPutStudent_whenStudentDoesNotExist_shouldSendMessageAndReturnSC404() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .put("/students/{id}", saved.getId() + 1)
+            .content(GSON.toJson(student))
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", saved.getId() + 1));
+  }
+
+  @Test
+  void testDeleteStudent_whenStudentExists_shouldDeleteAndReturnSC204() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .delete("/students/{id}", saved.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(204);
+    assertThat(response.getContentLength()).isEqualTo(0);
+  }
+
+  @Test
+  void testDeleteStudent_whenStudentDoesNotExist_shouldSendMessageAndReturnSC404() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student saved = studentRepository.save(student);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .delete("/students/{id}", saved.getId() + 1)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", saved.getId() + 1));
+  }
+
 }

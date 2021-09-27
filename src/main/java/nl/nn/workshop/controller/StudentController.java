@@ -1,8 +1,11 @@
 package nl.nn.workshop.controller;
 
-import nl.nn.workshop.model.Student;
-import nl.nn.workshop.repository.StudentRepository;
-import org.springframework.http.HttpStatus;
+import java.util.List;
+import nl.nn.workshop.resource.CreateStudentRequestResource;
+import nl.nn.workshop.resource.CreateStudentResponseResource;
+import nl.nn.workshop.resource.StudentResource;
+import nl.nn.workshop.resource.UpdateStudentRequestResource;
+import nl.nn.workshop.service.StudentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,49 +15,43 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/students")
 public class StudentController {
 
-  private final StudentRepository studentRepository;
+  private final StudentService studentService;
 
-  public StudentController(StudentRepository studentRepository) {
-    this.studentRepository = studentRepository;
+  public StudentController(StudentService studentService) {
+    this.studentService = studentService;
   }
 
   @PostMapping
-  public ResponseEntity<Student> createStudent(@RequestBody Student student) {
-    return ResponseEntity.ok(studentRepository.save(student));
+  public ResponseEntity<CreateStudentResponseResource> createStudent(@RequestBody CreateStudentRequestResource student) {
+    return ResponseEntity.ok(studentService.create(student));
   }
 
   @PutMapping(value = "/{id}")
-  public ResponseEntity<Student> updateStudent(@PathVariable(value = "id") Long id, @RequestBody Student student) {
-    Student found = studentRepository
-        .findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    found.setName(student.getName());
-    found.setBirthday(student.getBirthday());
-    return ResponseEntity.ok(studentRepository.save(found));
+  public ResponseEntity<StudentResource> updateStudent(
+      @PathVariable(value = "id") long id,
+      @RequestBody UpdateStudentRequestResource student) {
+    return ResponseEntity.ok(studentService.update(id, student));
   }
 
   @GetMapping(value = "/{id}")
-  public ResponseEntity<Student> getStudentById(@PathVariable(value = "id") Long id) {
-    return ResponseEntity.of(studentRepository.findById(id));
+  public ResponseEntity<StudentResource> getStudentById(@PathVariable(value = "id") long id) {
+    return ResponseEntity.ok(studentService.findById(id));
   }
 
   @GetMapping
-  public ResponseEntity<Iterable<Student>> getAllStudents() {
-    return ResponseEntity.ok(studentRepository.findAll());
+  public ResponseEntity<List<StudentResource>> getAllStudents() {
+    return ResponseEntity.ok(studentService.findAll());
   }
 
   @DeleteMapping(value = "/{id}")
-  public ResponseEntity<Void> deleteStudentById(@PathVariable(value = "id") Long id) {
-    Student student = studentRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    studentRepository.delete(student);
-    return ResponseEntity.ok().build();
+  public ResponseEntity<Void> deleteStudentById(@PathVariable(value = "id") long id) {
+    studentService.delete(id);
+    return ResponseEntity.noContent().build();
   }
 
 }
