@@ -20,7 +20,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   public static PostgreSQLContainer<?> container =
       new PostgreSQLContainer<>("postgres:13.4")
-          .withExposedPorts(5432, 5432)
           .withUsername("workshop")
           .withPassword("workshop")
           .withDatabaseName("workshop");
@@ -33,9 +32,9 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   static void exportPostgresProperties(DynamicPropertyRegistry registry) {
     container.addParameter("autoReconnect", "true");
     container.addParameter("useSSL", "false");
-    registry.add("db_url", container::getJdbcUrl);
-    registry.add("db_username", container::getUsername);
-    registry.add("db_password", container::getPassword);
+    registry.add("spring.datasource.url", container::getJdbcUrl);
+    registry.add("spring.datasource.username", container::getUsername);
+    registry.add("spring.datasource.password", container::getPassword);
   }
 
 }
