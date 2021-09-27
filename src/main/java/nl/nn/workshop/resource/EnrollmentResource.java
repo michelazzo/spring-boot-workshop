@@ -1,6 +1,5 @@
 package nl.nn.workshop.resource;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class EnrollmentResource {

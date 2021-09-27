@@ -1,14 +1,18 @@
 package nl.nn.workshop.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import nl.nn.workshop.AbstractUnitTest;
 import nl.nn.workshop.model.Enrollment;
 import nl.nn.workshop.repository.CourseRepository;
 import nl.nn.workshop.repository.EnrollmentRepository;
 import nl.nn.workshop.repository.StudentRepository;
+import nl.nn.workshop.resource.EnrollmentResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -29,52 +33,39 @@ public class EnrollmentControllerUnitTest extends AbstractUnitTest {
 
   @Test
   public void testCreateEnrollment_whenStudentAndCourseExist_shouldCreateAndReturnSC200() throws Exception {
-    LocalDateTime now = LocalDateTime.now();
+    long studentId = 1L;
+    long courseId = 1L;
 
-    when(studentRepository.existsById(1L)).thenReturn(true);
-    when(courseRepository.existsById(1L)).thenReturn(true);
-
-    Enrollment enrollment = new Enrollment();
-    enrollment.setStudentId(1L);
-    enrollment.setCourseId(1L);
-    enrollment.setEnrollmentDate(now);
-
-    when(enrollmentRepository.save(enrollment)).thenReturn(enrollment);
+    when(studentRepository.existsById(studentId)).thenReturn(true);
+    when(courseRepository.existsById(courseId)).thenReturn(true);
+    when(enrollmentRepository.save(any(Enrollment.class))).then(returnsFirstArg());
 
     RequestBuilder request =
         MockMvcRequestBuilders
-            .post("/enrollments")
-            .content(GSON.toJson(enrollment))
+            .post("/enrollments/student/{studentId}/course/{courseId}", studentId, courseId)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Enrollment fromResponse = GSON.fromJson(response.getContentAsString(), Enrollment.class);
-    assertThat(fromResponse.getEnrollmentDate()).isEqualTo(now);
-    assertThat(fromResponse.getStudentId()).isEqualTo(1L);
-    assertThat(fromResponse.getCourseId()).isEqualTo(1L);
+    EnrollmentResource fromResponse = GSON.fromJson(response.getContentAsString(), EnrollmentResource.class);
+    assertThat(fromResponse.getEnrollmentDate()).isNotNull();
+    assertThat(fromResponse.getStudentId()).isEqualTo(studentId);
+    assertThat(fromResponse.getCourseId()).isEqualTo(courseId);
   }
 
   @Test
   public void testCreateEnrollment_whenStudentDoesNotExist_shouldFailAndReturnSC404() throws Exception {
-    LocalDateTime now = LocalDateTime.now();
+    long studentId = 1L;
+    long courseId = 1L;
 
-    when(studentRepository.existsById(1L)).thenReturn(false);
-    when(courseRepository.existsById(1L)).thenReturn(true);
-
-    Enrollment enrollment = new Enrollment();
-    enrollment.setStudentId(1L);
-    enrollment.setCourseId(1L);
-    enrollment.setEnrollmentDate(now);
-
-    when(enrollmentRepository.save(enrollment)).thenReturn(enrollment);
+    when(studentRepository.existsById(studentId)).thenReturn(false);
+    when(courseRepository.existsById(courseId)).thenReturn(true);
 
     RequestBuilder request =
         MockMvcRequestBuilders
-            .post("/enrollments")
-            .content(GSON.toJson(enrollment))
+            .post("/enrollments/student/{studentId}/course/{courseId}", studentId, courseId)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
@@ -86,22 +77,15 @@ public class EnrollmentControllerUnitTest extends AbstractUnitTest {
 
   @Test
   public void testCreateEnrollment_whenCourseDoesNotExist_shouldFailAndReturnSC404() throws Exception {
-    LocalDateTime now = LocalDateTime.now();
+    long studentId = 1L;
+    long courseId = 1L;
 
-    when(studentRepository.existsById(1L)).thenReturn(true);
-    when(courseRepository.existsById(1L)).thenReturn(false);
-
-    Enrollment enrollment = new Enrollment();
-    enrollment.setStudentId(1L);
-    enrollment.setCourseId(1L);
-    enrollment.setEnrollmentDate(now);
-
-    when(enrollmentRepository.save(enrollment)).thenReturn(enrollment);
+    when(studentRepository.existsById(studentId)).thenReturn(true);
+    when(courseRepository.existsById(courseId)).thenReturn(false);
 
     RequestBuilder request =
         MockMvcRequestBuilders
-            .post("/enrollments")
-            .content(GSON.toJson(enrollment))
+            .post("/enrollments/student/{studentId}/course/{courseId}", studentId, courseId)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
@@ -109,6 +93,47 @@ public class EnrollmentControllerUnitTest extends AbstractUnitTest {
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentLength()).isEqualTo(0);
     assertThat(response.getErrorMessage()).isEqualTo("course with id 1 not found");
+  }
+
+  @Test
+  public void testDeleteEnrollment_whenStudentAndCourseExist_shouldCreateAndReturnSC200() throws Exception {
+    long studentId = 1L;
+    long courseId = 1L;
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(LocalDateTime.now());
+    enrollment.setStudentId(studentId);
+    enrollment.setCourseId(courseId);
+
+    when(enrollmentRepository.findById(any())).thenReturn(Optional.of(enrollment));
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .delete("/enrollments/student/{studentId}/course/{courseId}", studentId, courseId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEmpty();
+  }
+
+  @Test
+  public void testDeleteEnrollment_whenEnrollmentDoesNotExist_shouldFailAndReturnSC404() throws Exception {
+    long studentId = 1L;
+    long courseId = 1L;
+
+    when(enrollmentRepository.findById(any())).thenReturn(Optional.empty());
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .delete("/enrollments/student/{studentId}/course/{courseId}", studentId, courseId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getContentAsString()).isEmpty();
   }
 
 }
