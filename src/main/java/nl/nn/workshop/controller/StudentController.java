@@ -2,7 +2,6 @@ package nl.nn.workshop.controller;
 
 import java.util.List;
 import nl.nn.workshop.resource.CreateStudentRequestResource;
-import nl.nn.workshop.resource.CreateStudentResponseResource;
 import nl.nn.workshop.resource.StudentResource;
 import nl.nn.workshop.resource.UpdateStudentRequestResource;
 import nl.nn.workshop.service.StudentService;
@@ -27,7 +26,7 @@ public class StudentController {
   }
 
   @PostMapping
-  public ResponseEntity<CreateStudentResponseResource> createStudent(@RequestBody CreateStudentRequestResource student) {
+  public ResponseEntity<StudentResource> createStudent(@RequestBody CreateStudentRequestResource student) {
     return ResponseEntity.ok(studentService.create(student));
   }
 

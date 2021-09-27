@@ -3,7 +3,7 @@ package nl.nn.workshop.resource;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Enrollment implements Serializable {
+public class EnrollmentResource {
 
   private long studentId;
   private long courseId;

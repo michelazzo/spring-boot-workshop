@@ -7,7 +7,6 @@ import ma.glasnost.orika.MapperFacade;
 import nl.nn.workshop.model.Student;
 import nl.nn.workshop.repository.StudentRepository;
 import nl.nn.workshop.resource.CreateStudentRequestResource;
-import nl.nn.workshop.resource.CreateStudentResponseResource;
 import nl.nn.workshop.resource.StudentResource;
 import nl.nn.workshop.resource.UpdateStudentRequestResource;
 import org.springframework.http.HttpStatus;
@@ -25,9 +24,9 @@ public class StudentService {
     this.mapperFacade = mapperFacade;
   }
 
-  public CreateStudentResponseResource create(CreateStudentRequestResource resource) {
+  public StudentResource create(CreateStudentRequestResource resource) {
     Student saved = studentRepository.save(mapperFacade.map(resource, Student.class));
-    return mapperFacade.map(saved, CreateStudentResponseResource.class);
+    return mapperFacade.map(saved, StudentResource.class);
   }
 
   public StudentResource update(long id, UpdateStudentRequestResource resource) {

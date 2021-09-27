@@ -2,7 +2,7 @@ package nl.nn.workshop.controller;
 
 import java.util.List;
 import nl.nn.workshop.resource.CourseResource;
-import nl.nn.workshop.resource.CreateCourseResponseResource;
+import nl.nn.workshop.resource.CreateCourseRequestResource;
 import nl.nn.workshop.resource.UpdateCourseRequestResource;
 import nl.nn.workshop.service.CourseService;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ public class CourseController {
   }
 
   @PostMapping
-  public ResponseEntity<CreateCourseResponseResource> createCourse(@RequestBody CreateCourseResponseResource course) {
+  public ResponseEntity<CourseResource> createCourse(@RequestBody CreateCourseRequestResource course) {
     return ResponseEntity.ok(courseService.create(course));
   }
 
