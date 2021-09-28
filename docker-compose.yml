@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  mariadb:
+    image: postgres:13.4
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: workshop
+      POSTGRES_PASSWORD: workshop
