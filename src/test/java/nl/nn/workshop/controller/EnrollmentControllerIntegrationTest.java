@@ -93,7 +93,7 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentLength()).isEqualTo(0);
-    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", (student.getId() + 1)));
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", (savedStudent.getId() + 1L)));
   }
 
   @Test
@@ -124,7 +124,46 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentLength()).isEqualTo(0);
-    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", (course.getId() + 1)));
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", (savedCourse.getId() + 1)));
+  }
+
+  @Test
+  public void testCreateEnrollment_whenEnrollmentAlreadyExists_shouldFailAndReturnSC409() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student savedStudent = studentRepository.save(student);
+
+    String courseName = "Physics";
+
+    Course course = new Course();
+    course.setName(courseName);
+    course.setAvailable(true);
+
+    Course savedCourse = courseRepository.save(course);
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(LocalDateTime.now());
+    enrollment.setStudentId(savedStudent.getId());
+    enrollment.setCourseId(savedCourse.getId());
+
+    enrollmentRepository.save(enrollment);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .post("/enrollments/student/{studentId}/course/{courseId}", savedStudent.getId(), savedCourse.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(409);
+    assertThat(response.getContentLength()).isEqualTo(0);
+    assertThat(response.getErrorMessage()).isEqualTo(
+        String.format("student %d is already enrolled in the course %d", savedStudent.getId(), savedCourse.getId()));
   }
 
   @Test
@@ -192,7 +231,7 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
 
     RequestBuilder request =
         MockMvcRequestBuilders
-            .delete("/enrollments/student/{studentId}/course/{courseId}", savedStudent.getId() + 1, savedCourse.getId() + 1)
+            .delete("/enrollments/student/{studentId}/course/{courseId}", savedStudent.getId() + 1L, savedCourse.getId() + 1L)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 

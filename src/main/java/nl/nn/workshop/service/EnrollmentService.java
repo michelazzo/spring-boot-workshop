@@ -43,6 +43,10 @@ public class EnrollmentService {
       throw new ResponseStatusException(
           HttpStatus.NOT_FOUND, String.format("course with id %d not found", courseId));
     }
+    if (enrollmentRepository.existsById(new EnrollmentPk(studentId, courseId))) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, String.format("student %d is already enrolled in the course %d", studentId, courseId));
+    }
     Enrollment enrollment = new Enrollment();
     enrollment.setEnrollmentDate(LocalDateTime.now());
     enrollment.setStudentId(studentId);
