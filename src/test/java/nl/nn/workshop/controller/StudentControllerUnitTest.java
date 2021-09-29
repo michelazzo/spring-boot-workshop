@@ -1,6 +1,8 @@
 package nl.nn.workshop.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -10,6 +12,9 @@ import nl.nn.workshop.model.Student;
 import nl.nn.workshop.repository.CourseRepository;
 import nl.nn.workshop.repository.EnrollmentRepository;
 import nl.nn.workshop.repository.StudentRepository;
+import nl.nn.workshop.resource.CreateStudentRequestResource;
+import nl.nn.workshop.resource.StudentResource;
+import nl.nn.workshop.resource.UpdateStudentRequestResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -28,29 +33,29 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
   void testCreateStudent_whenStudentInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
     LocalDate birthday = LocalDate.of(1643, 1, 4);
     String studentName = "Isaac Newton";
+    long studentId = 1L;
 
-    Student student = new Student();
-    student.setBirthday(birthday);
-    student.setName(studentName);
+    CreateStudentRequestResource resource = new CreateStudentRequestResource();
+    resource.setBirthday(birthday);
+    resource.setName(studentName);
 
-    Student saved = new Student();
-    saved.setBirthday(birthday);
-    saved.setName(studentName);
-    saved.setId(1);
-
-    when(studentRepository.save(student)).thenReturn(saved);
+    when(studentRepository.save(any(Student.class))).then(i -> {
+      Student s = i.getArgument(0, Student.class);
+      s.setId(studentId);
+      return s;
+    });
 
     RequestBuilder request =
         MockMvcRequestBuilders
             .post("/students")
-            .content(GSON.toJson(student))
+            .content(GSON.toJson(resource))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    StudentResource fromResponse = GSON.fromJson(response.getContentAsString(), StudentResource.class);
     assertThat(fromResponse.getBirthday()).isEqualTo(birthday);
     assertThat(fromResponse.getName()).isEqualTo(studentName);
   }
@@ -59,7 +64,7 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
   void testGetStudent_whenStudentExists_shouldGetAndReturnSC200() throws Exception {
     LocalDate birthday = LocalDate.of(1643, 1, 4);
     String studentName = "Isaac Newton";
-    long studentId = 1;
+    long studentId = 1L;
 
     Student student = new Student();
     student.setBirthday(birthday);
@@ -77,7 +82,7 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    StudentResource fromResponse = GSON.fromJson(response.getContentAsString(), StudentResource.class);
     assertThat(fromResponse.getName()).isEqualTo(studentName);
     assertThat(fromResponse.getBirthday()).isEqualTo(birthday);
     assertThat(fromResponse.getId()).isEqualTo(studentId);
@@ -96,14 +101,14 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo("student with id 1 not found");
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", studentId));
   }
 
   @Test
   void testPutStudent_whenStudentExists_shouldUpdateAndReturnSC200() throws Exception {
     LocalDate birthday = LocalDate.of(1643, 2, 4);
     String name = "Isaac Newton";
-    long studentId = 1;
+    long studentId = 1L;
 
     Student student = new Student();
     student.setBirthday(birthday);
@@ -113,13 +118,12 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
     String updatedName = "Sir Isaac Newton";
     LocalDate updatedBirthday = LocalDate.of(1643, 1, 4);
 
-    Student studentUpdate = new Student();
+    when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+    when(studentRepository.save(any(Student.class))).then(returnsFirstArg());
+
+    UpdateStudentRequestResource studentUpdate = new UpdateStudentRequestResource();
     studentUpdate.setName(updatedName);
     studentUpdate.setBirthday(updatedBirthday);
-    studentUpdate.setId(studentId);
-
-    when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
-    when(studentRepository.save(student)).thenReturn(studentUpdate);
 
     RequestBuilder request =
         MockMvcRequestBuilders
@@ -131,7 +135,7 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    StudentResource fromResponse = GSON.fromJson(response.getContentAsString(), StudentResource.class);
     assertThat(fromResponse.getName()).isEqualTo(updatedName);
     assertThat(fromResponse.getBirthday()).isEqualTo(updatedBirthday);
     assertThat(fromResponse.getId()).isEqualTo(studentId);
@@ -141,25 +145,24 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
   void testPutStudent_whenStudentDoesNotExist_shouldSendMessageAndReturnSC404() throws Exception {
     LocalDate birthday = LocalDate.of(1643, 1, 4);
     String studentName = "Isaac Newton";
-    long studentId = 1;
+    long studentId = 1L;
 
-    Student student = new Student();
-    student.setBirthday(birthday);
-    student.setName(studentName);
-    student.setId(studentId);
+    UpdateStudentRequestResource resource = new UpdateStudentRequestResource();
+    resource.setBirthday(birthday);
+    resource.setName(studentName);
 
     when(studentRepository.findById(studentId)).thenReturn(Optional.empty());
 
     RequestBuilder request =
         MockMvcRequestBuilders
             .put("/students/{id}", studentId)
-            .content(GSON.toJson(student))
+            .content(GSON.toJson(resource))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo("student with id 1 not found");
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", studentId));
   }
 
   @Test
@@ -191,7 +194,7 @@ public class StudentControllerUnitTest extends AbstractUnitTest {
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo("student with id 1 not found");
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", studentId));
   }
 
 }

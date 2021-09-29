@@ -1,6 +1,8 @@
 package nl.nn.workshop.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -9,6 +11,9 @@ import nl.nn.workshop.model.Course;
 import nl.nn.workshop.repository.CourseRepository;
 import nl.nn.workshop.repository.EnrollmentRepository;
 import nl.nn.workshop.repository.StudentRepository;
+import nl.nn.workshop.resource.CourseResource;
+import nl.nn.workshop.resource.CreateCourseRequestResource;
+import nl.nn.workshop.resource.UpdateCourseRequestResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -26,32 +31,32 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
   @Test
   void testCreateCourse_whenCourseInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
     String courseName = "Physics";
+    long courseId = 1L;
 
-    Course course = new Course();
-    course.setName(courseName);
-    course.setAvailable(true);
+    CreateCourseRequestResource resource = new CreateCourseRequestResource();
+    resource.setName(courseName);
+    resource.setAvailable(true);
 
-    Course saved = new Course();
-    saved.setName(courseName);
-    saved.setAvailable(true);
-    saved.setId(1);
-
-    when(courseRepository.save(course)).thenReturn(saved);
+    when(courseRepository.save(any(Course.class))).then(i -> {
+      Course c = i.getArgument(0, Course.class);
+      c.setId(courseId);
+      return c;
+    });
 
     RequestBuilder request =
         MockMvcRequestBuilders
             .post("/courses")
-            .content(GSON.toJson(course))
+            .content(GSON.toJson(resource))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseName);
     assertThat(fromResponse.isAvailable()).isEqualTo(true);
-    assertThat(fromResponse.getId()).isEqualTo(1L);
+    assertThat(fromResponse.getId()).isEqualTo(courseId);
   }
 
   @Test
@@ -64,7 +69,7 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
     course.setAvailable(true);
     course.setId(courseId);
 
-    when(courseRepository.findById(1L)).thenReturn(Optional.of(course));
+    when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
 
     RequestBuilder request =
         MockMvcRequestBuilders
@@ -75,7 +80,7 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseName);
     assertThat(fromResponse.isAvailable()).isEqualTo(true);
     assertThat(fromResponse.getId()).isEqualTo(courseId);
@@ -94,7 +99,7 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo("course with id 1 not found");
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", courseId));
   }
 
   @Test
@@ -108,13 +113,12 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
     course.setAvailable(true);
     course.setId(courseId);
 
-    Course courseUpdate = new Course();
+    when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+    when(courseRepository.save(any(Course.class))).then(returnsFirstArg());
+
+    UpdateCourseRequestResource courseUpdate = new UpdateCourseRequestResource();
     courseUpdate.setName(courseNewName);
     courseUpdate.setAvailable(false);
-    courseUpdate.setId(courseId);
-
-    when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
-    when(courseRepository.save(course)).thenReturn(courseUpdate);
 
     RequestBuilder request =
         MockMvcRequestBuilders
@@ -126,7 +130,7 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseNewName);
     assertThat(fromResponse.isAvailable()).isEqualTo(false);
     assertThat(fromResponse.getId()).isEqualTo(courseId);
@@ -137,26 +141,23 @@ public class CourseControllerUnitTest extends AbstractUnitTest {
     String courseName = "Physics";
     long courseId = 1L;
 
-    Course course = new Course();
-    course.setName(courseName);
-    course.setAvailable(true);
-    course.setId(courseId);
-
     when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+    UpdateCourseRequestResource resource = new UpdateCourseRequestResource();
+    resource.setName(courseName);
+    resource.setAvailable(true);
 
     RequestBuilder request =
         MockMvcRequestBuilders
             .put("/courses/{id}", courseId)
-            .content(GSON.toJson(course))
+            .content(GSON.toJson(resource))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo("course with id 1 not found");
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", courseId));
   }
-
-
 
   @Test
   void testDeleteCourse_whenCourseExists_shouldDeleteAndReturnSC204() throws Exception {

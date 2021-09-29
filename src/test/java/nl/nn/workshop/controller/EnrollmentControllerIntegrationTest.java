@@ -11,6 +11,7 @@ import nl.nn.workshop.model.Student;
 import nl.nn.workshop.repository.CourseRepository;
 import nl.nn.workshop.repository.EnrollmentRepository;
 import nl.nn.workshop.repository.StudentRepository;
+import nl.nn.workshop.resource.EnrollmentResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -59,7 +60,7 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Enrollment fromResponse = GSON.fromJson(response.getContentAsString(), Enrollment.class);
+    EnrollmentResource fromResponse = GSON.fromJson(response.getContentAsString(), EnrollmentResource.class);
     assertThat(fromResponse.getEnrollmentDate()).isNotNull();
     assertThat(fromResponse.getStudentId()).isEqualTo(savedStudent.getId());
     assertThat(fromResponse.getCourseId()).isEqualTo(savedCourse.getId());
@@ -93,7 +94,7 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentLength()).isEqualTo(0);
-    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", (savedStudent.getId() + 1L)));
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("student with id %d not found", (savedStudent.getId() + 1)));
   }
 
   @Test

@@ -5,6 +5,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import nl.nn.workshop.AbstractIntegrationTest;
 import nl.nn.workshop.model.Course;
 import nl.nn.workshop.repository.CourseRepository;
+import nl.nn.workshop.resource.CourseResource;
+import nl.nn.workshop.resource.CreateCourseRequestResource;
+import nl.nn.workshop.resource.UpdateCourseRequestResource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,12 +26,9 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
   void testCreateCourse_whenCourseInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
     String courseName = "Physics";
 
-    Course course = new Course();
+    CreateCourseRequestResource course = new CreateCourseRequestResource();
     course.setName(courseName);
     course.setAvailable(true);
-
-    Course saved = courseRepository.save(course);
-    assertThat(saved.getId()).isNotNull();
 
     RequestBuilder request =
         MockMvcRequestBuilders
@@ -40,7 +40,7 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseName);
     assertThat(fromResponse.isAvailable()).isEqualTo(true);
   }
@@ -64,7 +64,7 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseName);
     assertThat(fromResponse.isAvailable()).isEqualTo(true);
     assertThat(fromResponse.getId()).isEqualTo(saved.getId());
@@ -82,13 +82,13 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
 
     RequestBuilder request =
         MockMvcRequestBuilders
-            .get("/courses/{id}", saved.getId() + 1L)
+            .get("/courses/{id}", saved.getId() + 1)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", saved.getId() + 1L));
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", saved.getId() + 1));
   }
 
   @Test
@@ -102,7 +102,7 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
 
     Course saved = courseRepository.save(course);
 
-    Course courseUpdate = new Course();
+    UpdateCourseRequestResource courseUpdate = new UpdateCourseRequestResource();
     courseUpdate.setName(courseNewName);
     courseUpdate.setAvailable(false);
 
@@ -116,7 +116,7 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(200);
 
-    Course fromResponse = GSON.fromJson(response.getContentAsString(), Course.class);
+    CourseResource fromResponse = GSON.fromJson(response.getContentAsString(), CourseResource.class);
     assertThat(fromResponse.getName()).isEqualTo(courseNewName);
     assertThat(fromResponse.isAvailable()).isEqualTo(false);
     assertThat(fromResponse.getId()).isEqualTo(saved.getId());
@@ -132,16 +132,20 @@ public class CourseControllerIntegrationTest extends AbstractIntegrationTest {
 
     Course saved = courseRepository.save(course);
 
+    UpdateCourseRequestResource update = new UpdateCourseRequestResource();
+    update.setAvailable(true);
+    update.setName("Other Course");
+
     RequestBuilder request =
         MockMvcRequestBuilders
-            .put("/courses/{id}", saved.getId() + 1L)
-            .content(GSON.toJson(course))
+            .put("/courses/{id}", saved.getId() + 1)
+            .content(GSON.toJson(update))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON);
 
     MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
     assertThat(response.getStatus()).isEqualTo(404);
-    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", saved.getId() + 1L));
+    assertThat(response.getErrorMessage()).isEqualTo(String.format("course with id %d not found", saved.getId() + 1));
   }
 
   @Test
