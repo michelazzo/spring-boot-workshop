@@ -26,6 +26,7 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql:1.16.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.google.code.gson:gson:2.8.8'
+    testImplementation 'org.assertj:assertj-core:3.21.0'
 }
 
 test {
