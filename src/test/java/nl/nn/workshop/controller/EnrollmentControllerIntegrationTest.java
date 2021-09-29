@@ -1,9 +1,11 @@
 package nl.nn.workshop.controller;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.gson.reflect.TypeToken;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import nl.nn.workshop.AbstractIntegrationTest;
 import nl.nn.workshop.model.Course;
 import nl.nn.workshop.model.Enrollment;
@@ -165,6 +167,133 @@ public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest
     assertThat(response.getContentLength()).isEqualTo(0);
     assertThat(response.getErrorMessage()).isEqualTo(
         String.format("student %d is already enrolled in the course %d", savedStudent.getId(), savedCourse.getId()));
+  }
+
+  @Test
+  void testGetEnrollment_whenEnrollmentExists_shouldGetAndReturnSC200() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student savedStudent = studentRepository.save(student);
+
+    String courseName = "Physics";
+
+    Course course = new Course();
+    course.setName(courseName);
+    course.setAvailable(true);
+
+    Course savedCourse = courseRepository.save(course);
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(LocalDateTime.now());
+    enrollment.setStudentId(savedStudent.getId());
+    enrollment.setCourseId(savedCourse.getId());
+
+    enrollmentRepository.save(enrollment);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .get("/enrollments/student/{studentId}/course/{courseId}", savedStudent.getId(), savedCourse.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    EnrollmentResource fromResponse = GSON.fromJson(response.getContentAsString(), EnrollmentResource.class);
+    assertThat(fromResponse.getEnrollmentDate()).isNotNull();
+    assertThat(fromResponse.getStudentId()).isEqualTo(savedStudent.getId());
+    assertThat(fromResponse.getCourseId()).isEqualTo(savedCourse.getId());
+  }
+
+  @Test
+  void testGetEnrollment_whenEnrollmentDoesNotExists_shouldGetAndReturnSC404() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student savedStudent = studentRepository.save(student);
+
+    String courseName = "Physics";
+
+    Course course = new Course();
+    course.setName(courseName);
+    course.setAvailable(true);
+
+    Course savedCourse = courseRepository.save(course);
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(LocalDateTime.now());
+    enrollment.setStudentId(savedStudent.getId());
+    enrollment.setCourseId(savedCourse.getId());
+
+    enrollmentRepository.save(enrollment);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .get("/enrollments/student/{studentId}/course/{courseId}",
+                enrollment.getStudentId() + 1, enrollment.getCourseId() + 1)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getErrorMessage()).isEqualTo(
+        String.format("enrollment for user with id %d and course with id %d not found",
+            enrollment.getStudentId() + 1, enrollment.getCourseId() + 1));
+  }
+
+  @Test
+  void testGetEnrollments_whenEnrollmentsExist_shouldGetListAndReturnSC200() throws Exception {
+    LocalDate birthday = LocalDate.of(1643, 1, 4);
+    String studentName = "Isaac Newton";
+
+    Student student = new Student();
+    student.setBirthday(birthday);
+    student.setName(studentName);
+
+    Student savedStudent = studentRepository.save(student);
+
+    String courseName = "Physics";
+
+    Course course = new Course();
+    course.setName(courseName);
+    course.setAvailable(true);
+
+    Course savedCourse = courseRepository.save(course);
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollmentDate(LocalDateTime.now());
+    enrollment.setStudentId(savedStudent.getId());
+    enrollment.setCourseId(savedCourse.getId());
+
+    enrollmentRepository.save(enrollment);
+
+    RequestBuilder request =
+        MockMvcRequestBuilders
+            .get("/enrollments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON);
+
+    MockHttpServletResponse response = mvc.perform(request).andReturn().getResponse();
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    ArrayList<EnrollmentResource> fromResponse = GSON.fromJson(response.getContentAsString(),
+        new TypeToken<ArrayList<EnrollmentResource>>() {}.getType());
+    assertThat(fromResponse.size()).isEqualTo(1);
+
+    EnrollmentResource enrollmentResource = new EnrollmentResource();
+    enrollmentResource.setEnrollmentDate(fromResponse.get(0).getEnrollmentDate()); // hacky
+    enrollmentResource.setStudentId(savedStudent.getId());
+    enrollmentResource.setCourseId(savedCourse.getId());
+    assertThat(fromResponse).containsExactlyInAnyOrder(enrollmentResource);
   }
 
   @Test
