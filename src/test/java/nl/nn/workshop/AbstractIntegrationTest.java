@@ -2,6 +2,7 @@ package nl.nn.workshop;
 
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.annotation.DirtiesContext;
@@ -16,6 +17,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @DirtiesContext(methodMode = MethodMode.AFTER_METHOD)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("integration-test")
+@AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest extends AbstractTest {
 
   @Autowired

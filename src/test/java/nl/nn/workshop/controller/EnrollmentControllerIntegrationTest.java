@@ -22,7 +22,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@AutoConfigureMockMvc
 public class EnrollmentControllerIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired
