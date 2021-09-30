@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -18,9 +17,6 @@ public class StudentControllerIntegrationTest extends AbstractIntegrationTest {
 
   @Autowired
   private StudentRepository studentRepository;
-
-  @Autowired
-  protected MockMvc mvc;
 
   @Test
   void testCreateStudent_whenStudentInfoIsProvided_shouldCreateAndReturnSC200() throws Exception {
@@ -30,9 +26,6 @@ public class StudentControllerIntegrationTest extends AbstractIntegrationTest {
     Student student = new Student();
     student.setBirthday(birthday);
     student.setName(studentName);
-
-    Student saved = studentRepository.save(student);
-    assertThat(saved.getId()).isNotNull();
 
     RequestBuilder request =
         MockMvcRequestBuilders
@@ -45,6 +38,7 @@ public class StudentControllerIntegrationTest extends AbstractIntegrationTest {
     assertThat(response.getStatus()).isEqualTo(200);
 
     Student fromResponse = GSON.fromJson(response.getContentAsString(), Student.class);
+    assertThat(fromResponse.getId()).isNotNull();
     assertThat(fromResponse.getBirthday()).isEqualTo(birthday);
     assertThat(fromResponse.getName()).isEqualTo(studentName);
   }
