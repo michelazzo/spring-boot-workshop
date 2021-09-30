@@ -23,7 +23,6 @@ dependencies {
     runtimeOnly 'org.flywaydb:flyway-core:7.15.0'
     runtimeOnly 'com.h2database:h2'
 
-    testImplementation 'org.testcontainers:postgresql:1.16.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.google.code.gson:gson:2.8.8'
     testImplementation 'org.assertj:assertj-core:3.21.0'
@@ -35,3 +34,37 @@ test {
         events "passed", "skipped", "failed"
     }
 }
+
+sourceSets {
+    intTest {
+        compileClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.test.output
+    }
+}
+
+configurations {
+    intTestImplementation.extendsFrom implementation, testImplementation
+    intTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    intTestImplementation 'org.testcontainers:postgresql:1.16.0'
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+//    shouldRunAfter test
+}
+
+//check.dependsOn integrationTest
