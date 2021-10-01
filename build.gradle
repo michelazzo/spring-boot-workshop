@@ -64,7 +64,6 @@ tasks.register('integrationTest', Test) {
 
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
-//    shouldRunAfter test
 }
 
-//check.dependsOn integrationTest
+integrationTest.mustRunAfter test
