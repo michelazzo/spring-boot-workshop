@@ -1,5 +1,6 @@
 package nl.nn.workshop.controller;
 
+import java.util.List;
 import nl.nn.workshop.resource.EnrollmentResource;
 import nl.nn.workshop.service.EnrollmentService;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class EnrollmentController {
   }
 
   @GetMapping
-  public ResponseEntity<Iterable<EnrollmentResource>> getAllEnrollments() {
+  public ResponseEntity<List<EnrollmentResource>> getAllEnrollments() {
     return ResponseEntity.ok(enrollmentService.findAll());
   }
 
