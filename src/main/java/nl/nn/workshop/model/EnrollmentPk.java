@@ -3,15 +3,12 @@ package nl.nn.workshop.model;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.persistence.Column;
-import javax.persistence.Id;
 
 public class EnrollmentPk implements Serializable {
 
-  @Id
   @Column(name = "student_id")
   private long studentId;
 
-  @Id
   @Column(name = "course_id")
   private long courseId;
 
