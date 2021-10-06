@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  mariadb:
+  postgres:
     image: postgres:13.4
     ports:
       - "5432:5432"
