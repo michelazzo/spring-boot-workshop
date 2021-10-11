@@ -1,6 +1,6 @@
 # SpringBoot Workshop
 
-## What did I use
+## The toolbox
 
 Those are the technologies used in the workshop:
 - [Java 11](https://jdk.java.net/11/)
@@ -12,3 +12,7 @@ Those are the technologies used in the workshop:
 - [Orika](https://github.com/orika-mapper/orika)
 - [AssertJ](https://github.com/assertj/assertj-core)
 - [OpenAPI 3 & Spring Boot](https://springdoc.org/)
+
+Useful links:
+- [API Swagger documentation](http://localhost:8080/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config)
+- [H2 Console](http://localhost:8080/h2-console/)
